@@ -369,7 +369,7 @@ Edit `~/.claude/settings.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/YOURNAME/.local/bin/claude-task-done.sh"
+            "command": "afplay /System/Library/Sounds/Glass.aiff"
           }
         ]
       },
@@ -378,7 +378,7 @@ Edit `~/.claude/settings.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/YOURNAME/.local/bin/claude-user-prompt.sh"
+            "command": "afplay /System/Library/Sounds/Hero.aiff"
           }
         ]
       }
@@ -386,6 +386,8 @@ Edit `~/.claude/settings.json`:
   }
 }
 ```
+
+> 💡 Tip: Linux users replace `afplay` with `paplay`, `aplay`, or `echo -e "\a"`. Windows users use `powershell.exe -Command "[console]::beep(800,200)"`
 
 ### Combining Multiple Hooks
 
@@ -400,7 +402,7 @@ Configure multiple hooks for the same event:
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/YOURNAME/.local/bin/claude-task-done.sh"
+            "command": "afplay /System/Library/Sounds/Glass.aiff"
           },
           {
             "type": "command",
@@ -413,6 +415,8 @@ Configure multiple hooks for the same event:
 }
 ```
 
+> 💡 Tip: Linux and Windows users should use the corresponding sound commands for their platform
+
 ## ❓ FAQ
 
 ### 1. No Sound
@@ -420,15 +424,13 @@ Configure multiple hooks for the same event:
 #### macOS
 Check the following:
 - [ ] System volume is turned on
-- [ ] Script has execute permission (`ls -l ~/.local/bin/`)
-- [ ] Audio file path is correct
+- [ ] Command path in settings.json is correct
 - [ ] Test audio file directly with `afplay` command
 
 #### Linux
 Check the following:
 - [ ] System volume is turned on
 - [ ] Terminal bell is enabled
-- [ ] Script has execute permission
 - [ ] Try other sound playback methods (paplay, aplay, etc.)
 
 **Enable terminal bell:**
@@ -441,7 +443,6 @@ set bell-style audible
 Check the following:
 - [ ] System volume is turned on
 - [ ] PowerShell is available
-- [ ] Script has execute permission
 - [ ] Test directly in PowerShell: `[console]::beep(800, 200)`
 
 ### 2. Hook Not Triggering
@@ -452,12 +453,12 @@ Confirm the following:
 - [ ] Hook event name is correct
 - [ ] Claude Code has been restarted
 
-### 3. Script Path Issues on Windows
+### 3. Verify Commands Work Correctly
 
-If you encounter path issues on Windows, make sure:
-- Use Git Bash, MSYS2, or WSL environment
-- Scripts use Unix-style path separators (/)
-- Scripts have execute permissions (`chmod +x ~/.local/bin/*.sh`)
+If sound commands are not executing, verify:
+- macOS: Run `afplay /System/Library/Sounds/Glass.aiff` directly in terminal
+- Linux: Run `echo -e "\a"` or `paplay ...` directly in terminal
+- Windows: Run `[console]::beep(800, 200)` directly in PowerShell
 
 ### 4. View Supported Hook Events
 

@@ -369,7 +369,7 @@ claude-code-sounds/
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/YOURNAME/.local/bin/claude-task-done.sh"
+            "command": "afplay /System/Library/Sounds/Glass.aiff"
           }
         ]
       },
@@ -378,7 +378,7 @@ claude-code-sounds/
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/YOURNAME/.local/bin/claude-user-prompt.sh"
+            "command": "afplay /System/Library/Sounds/Hero.aiff"
           }
         ]
       }
@@ -386,6 +386,8 @@ claude-code-sounds/
   }
 }
 ```
+
+> 💡 提示：Linux 用户将 `afplay` 替换为 `paplay`、`aplay` 或 `echo -e "\a"`，Windows 用户使用 `powershell.exe -Command "[console]::beep(800,200)"`
 
 ### 组合多个 Hook
 
@@ -400,7 +402,7 @@ claude-code-sounds/
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/YOURNAME/.local/bin/claude-task-done.sh"
+            "command": "afplay /System/Library/Sounds/Glass.aiff"
           },
           {
             "type": "command",
@@ -413,6 +415,8 @@ claude-code-sounds/
 }
 ```
 
+> 💡 提示：Linux 和 Windows 用户请使用对应平台的声音命令
+
 ## ❓ 常见问题
 
 ### 1. 没有声音
@@ -420,15 +424,13 @@ claude-code-sounds/
 #### macOS
 检查以下项目：
 - [ ] 系统音量是否开启
-- [ ] 脚本是否有执行权限（`ls -l ~/.local/bin/`）
-- [ ] 音频文件路径是否正确
+- [ ] settings.json 中的命令路径是否正确
 - [ ] 使用 `afplay` 命令直接测试音频文件
 
 #### Linux
 检查以下项目：
 - [ ] 系统音量是否开启
 - [ ] 终端是否启用了系统提示音
-- [ ] 脚本是否有执行权限
 - [ ] 尝试其他声音播放方式（paplay、aplay 等）
 
 **启用终端提示音：**
@@ -441,7 +443,6 @@ set bell-style audible
 检查以下项目：
 - [ ] 系统音量是否开启
 - [ ] PowerShell 是否可用
-- [ ] 脚本是否有执行权限
 - [ ] 在 PowerShell 中直接测试：`[console]::beep(800, 200)`
 
 ### 2. Hook 没有触发
@@ -452,12 +453,12 @@ set bell-style audible
 - [ ] Hook 事件名称是否正确
 - [ ] 是否已重启 Claude Code
 
-### 3. Windows 下脚本路径问题
+### 3. 验证命令是否正确
 
-如果在 Windows 下遇到路径问题，请确保：
-- 使用 Git Bash、MSYS2 或 WSL 环境
-- 脚本使用 Unix 风格的路径分隔符（/）
-- 脚本有执行权限（`chmod +x ~/.local/bin/*.sh`）
+如果声音命令没有执行，请确认：
+- macOS: 在终端中直接运行 `afplay /System/Library/Sounds/Glass.aiff`
+- Linux: 在终端中直接运行 `echo -e "\a"` 或 `paplay ...`
+- Windows: 在 PowerShell 中直接运行 `[console]::beep(800, 200)`
 
 ### 4. 查看支持的 Hook 事件
 
