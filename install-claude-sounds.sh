@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 #
 # Claude Code 声音提示配置 - 一键安装脚本（优化版）
 # 版本: 3.0.0
