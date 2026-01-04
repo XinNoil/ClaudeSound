@@ -15,7 +15,7 @@
 ## ✨ 功能特性
 
 - 🎵 **六种提示音** - 针对不同场景配置专属音效
-  - 任务完成音 - 清脆的玻璃声/系统提示音
+  - 工具调用音 - 清脆的玻璃声/系统提示音
   - 用户提交音 - 英雄登场音效/系统提示音
   - 用户询问音 - 清脆的提示音/系统提示音
   - 权限请求音 - 清脆的提示音/系统提示音
@@ -125,7 +125,7 @@ cd claude-code-sounds
 
 | 事件 | 触发时机 | 音效 | 用途 |
 |------|----------|------|------|
-| **PostToolUse** | Claude 执行工具操作后 | Glass.aiff | 表示任务已完成 |
+| **PostToolUse** | Claude 执行工具操作后 | Glass.aiff | 工具调用完成提示 |
 | **UserPromptSubmit** | 用户提交新的提示时 | Hero.aiff | 表示已接收指令 |
 | **PermissionRequest** | Claude 请求权限时 | Ping.aiff | 等待授权确认 |
 | **Notification (permission_prompt)** | Claude 需要权限时 | Ping.aiff | 权限请求通知 |

@@ -29,7 +29,7 @@ declare -A AVAILABLE_SOUNDS=(
 
 # 钩子描述
 declare -A HOOK_DESCRIPTIONS=(
-    ["task_done"]="任务完成提示音"
+    ["task_done"]="工具调用提示音"
     ["user_prompt"]="用户提交提示音"
     ["ask_user"]="用户询问提示音"
     ["permission_prompt"]="权限请求提示音"

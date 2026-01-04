@@ -15,7 +15,7 @@ English | [简体中文](README.md)
 ## ✨ Features
 
 - 🎵 **Six Notification Sounds** - Unique sound effects for different scenarios
-  - Task Complete Sound - Crisp glass sound/system bell
+  - Tool Call Sound - Crisp glass sound/system bell
   - User Submit Sound - Hero entrance effect/system bell
   - User Ask Sound - Clear notification ping/system bell
   - Permission Request Sound - Clear notification ping/system bell
@@ -125,7 +125,7 @@ This project supports the following Claude Code hook events:
 
 | Event | Trigger | Sound | Purpose |
 |------|---------|-------|---------|
-| **PostToolUse** | After Claude executes tool operations | Glass.aiff | Indicates task completion |
+| **PostToolUse** | After Claude executes tool operations | Glass.aiff | Tool call completion notification |
 | **UserPromptSubmit** | When user submits new prompt | Hero.aiff | Indicates command received |
 | **PermissionRequest** | When Claude requests permission | Ping.aiff | Waiting for authorization |
 | **Notification (permission_prompt)** | When Claude needs permission | Ping.aiff | Permission request notification |
