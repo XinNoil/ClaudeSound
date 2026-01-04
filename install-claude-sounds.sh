@@ -210,7 +210,7 @@ generate_all_scripts() {
             ;;
     esac
 
-    for hook_name in "${!HOOK_EVENTS[@]}"; do
+    for hook_name in ${(k)HOOK_EVENTS}; do
         local sound_key="${platform}_${hook_name}"
         local sound_cmd="${PLATFORM_SOUNDS[$sound_key]}"
         generate_sound_script "$hook_name" "$sound_cmd" "$platform"
@@ -256,7 +256,7 @@ generate_hooks_config_for_jq() {
     local first_hook=true
 
     # 收集非 Notification 钩子
-    for hook_name in "${!HOOK_EVENTS[@]}"; do
+    for hook_name in ${(k)HOOK_EVENTS}; do
         if [ "${HOOK_ENABLED[$hook_name]}" -eq 0 ]; then
             continue
         fi
@@ -292,7 +292,7 @@ generate_hooks_config_for_jq() {
 
     # 收集 Notification 钩子
     local notification_items=()
-    for hook_name in "${!HOOK_EVENTS[@]}"; do
+    for hook_name in ${(k)HOOK_EVENTS}; do
         if [ "${HOOK_ENABLED[$hook_name]}" -eq 0 ]; then
             continue
         fi
@@ -350,7 +350,7 @@ test_notification_sounds() {
     print_info "测试已启用的提示音..."
     echo ""
 
-    for hook_name in "${!HOOK_EVENTS[@]}"; do
+    for hook_name in ${(k)HOOK_EVENTS}; do
         if [ "${HOOK_ENABLED[$hook_name]}" -eq 0 ]; then
             continue
         fi
@@ -384,7 +384,8 @@ show_sound_options() {
 
     echo "  0. 使用默认声音"
 
-    IFS='|' read -ra sound_array <<< "$sounds"
+    # zsh 兼容的数组分割方式
+    sound_array=("${(@s/|/)sounds}")
     for sound in "${sound_array[@]}"; do
         echo "  ${i}. ${sound}"
         ((i++))
@@ -402,11 +403,12 @@ apply_sound_choice() {
         return
     fi
 
-    IFS='|' read -ra sound_array <<< "$sounds"
+    # zsh 兼容的数组分割方式
+    sound_array=("${(@s/|/)sounds}")
     local idx=$((choice - 1))
 
     if [ $idx -ge 0 ] && [ $idx -lt ${#sound_array[@]} ]; then
-        local selected_sound="${sound_array[$idx]}"
+        local selected_sound="${sound_array[$idx + 1]}"
         local sound_cmd=""
 
         case "$OS" in
@@ -436,13 +438,24 @@ apply_sound_choice() {
 
 # 显示交互式配置菜单
 show_interactive_menu() {
+    # 检查是否在交互式终端中
+    if [ ! -t 0 ]; then
+        print_warning "检测到非交互式环境，跳过交互式配置"
+        print_info "使用默认配置（所有通知启用，默认声音）"
+        return 0
+    fi
+
     clear
     print_header "Claude Code 声音提示配置 v${VERSION} - 交互式配置"
 
     echo -e "${CYAN}当前操作系统: ${OS}${NC}"
     echo ""
 
-    # 步骤 1: 选择要启用的钩子
+    # 步骤 1: 选择要启用的钩子（上下键选择，回车切换）
+    local hook_names=(task_done user_prompt ask_user permission_prompt idle_prompt stop)
+    local current_selection=0
+    local total_hooks=6
+
     while true; do
         clear
         print_header "Claude Code 声音提示配置 v${VERSION} - 交互式配置"
@@ -451,46 +464,89 @@ show_interactive_menu() {
 
         print_info "步骤 1/2: 选择要启用的声音通知"
         echo ""
-        echo "输入钩子编号来切换启用/禁用状态，或按 Enter 继续:"
+        echo "使用 ↑↓ 键移动，空格/回车切换启用/禁用，选择第 7 项完成并继续:"
         echo ""
 
-        local hook_names=(task_done user_prompt ask_user permission_prompt idle_prompt stop)
         local i=1
-
         for hook_name in "${hook_names[@]}"; do
+            local cursor="  "
             local hook_status="${GREEN}[✓ 启用]${NC}"
+
             if [ "${HOOK_ENABLED[$hook_name]}" -eq 0 ]; then
                 hook_status="${RED}[✗ 禁用]${NC}"
             fi
-            echo "  ${i}. ${hook_status} ${HOOK_DESCRIPTIONS[$hook_name]} (${HOOK_DETAIL_DESCRIPTIONS[$hook_name]})"
+
+            # 显示当前选中项的箭头
+            if [ $i -eq $((current_selection + 1)) ]; then
+                cursor="→ "
+            fi
+
+            echo "${cursor}${hook_status} ${HOOK_DESCRIPTIONS[$hook_name]} (${HOOK_DETAIL_DESCRIPTIONS[$hook_name]})"
             ((i++))
         done
 
+        # 添加"完成配置"选项
+        local cursor="  "
+        if [ $i -eq $((current_selection + 1)) ]; then
+            cursor="→ "
+        fi
+        echo "${cursor}${CYAN}[完成配置]${NC} - 继续到下一步"
         echo ""
-        echo -n "选择 (1-6, 或 Enter 继续): "
-        read -r selection
 
-        if [ -z "$selection" ]; then
-            break
-        fi
+        # 读取单字符输入（上下键或空格/回车）
+        local key=""
+        read -s -k 1 key 2>/dev/null || key=""
 
-        if [[ "$selection" =~ ^[1-6]$ ]]; then
-            local idx=$((selection - 1))
-            local selected_hook="${hook_names[$idx]}"
-
-            if [ "${HOOK_ENABLED[$selected_hook]}" -eq 1 ]; then
-                HOOK_ENABLED[$selected_hook]=0
-                print_info "已禁用: ${HOOK_DESCRIPTIONS[$selected_hook]}"
-            else
-                HOOK_ENABLED[$selected_hook]=1
-                print_success "已启用: ${HOOK_DESCRIPTIONS[$selected_hook]}"
-            fi
-
-            sleep 1
-        else
-            print_warning "无效的选择，请输入 1-6 或按 Enter 继续"
-            sleep 1
-        fi
+        case "$key" in
+            $'\e')  # 可能是方向键
+                # 读取第二个字符
+                read -s -k 1 key2 2>/dev/null
+                if [ "$key2" = "[" ]; then
+                    read -s -k 1 key3 2>/dev/null
+                    case "$key3" in
+                        A)  # 上键
+                            if [ $current_selection -gt 0 ]; then
+                                ((current_selection--))
+                            fi
+                            ;;
+                        B)  # 下键
+                            if [ $current_selection -lt $total_hooks ]; then
+                                ((current_selection++))
+                            fi
+                            ;;
+                    esac
+                fi
+                ;;
+            ' ')  # 空格键 - 切换状态
+                if [ $current_selection -lt $total_hooks ]; then
+                    local selected_hook="${hook_names[$current_selection]}"
+                    if [ "${HOOK_ENABLED[$selected_hook]}" -eq 1 ]; then
+                        HOOK_ENABLED[$selected_hook]=0
+                    else
+                        HOOK_ENABLED[$selected_hook]=1
+                    fi
+                fi
+                ;;
+            '')  # 回车键 - 切换状态或继续
+                if [ $current_selection -eq $total_hooks ]; then
+                    # 选择了"完成配置"
+                    break
+                else
+                    # 切换当前选项的状态
+                    local selected_hook="${hook_names[$current_selection]}"
+                    if [ "${HOOK_ENABLED[$selected_hook]}" -eq 1 ]; then
+                        HOOK_ENABLED[$selected_hook]=0
+                    else
+                        HOOK_ENABLED[$selected_hook]=1
+                    fi
+                fi
+                ;;
+            q)  # q 键退出
+                echo ""
+                print_info "取消配置，使用默认设置"
+                exit 0
+                ;;
+        esac
     done
 
     # 步骤 2: 为每个启用的钩子选择声音
