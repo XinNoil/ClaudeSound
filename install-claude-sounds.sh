@@ -29,8 +29,8 @@ declare -A PLATFORM_SOUNDS=(
     ["macos_user_prompt"]="afplay /System/Library/Sounds/Hero.aiff"
     ["macos_ask_user"]="afplay /System/Library/Sounds/Ping.aiff"
     ["macos_permission_prompt"]="afplay /System/Library/Sounds/Ping.aiff"
-    ["macos_idle_prompt"]="afplay /System/Library/Sounds/Glass.aiff"
-    ["macos_stop"]="afplay /System/Library/Sounds/Hero.aiff"
+    ["macos_idle_prompt"]="afplay /System/Library/Sounds/Ping.aiff"
+    ["macos_stop"]="afplay /System/Library/Sounds/Ping.aiff"
 
     ["linux_task_done"]="echo -e \"\\a\""
     ["linux_user_prompt"]="echo -e \"\\a\""
@@ -95,6 +95,16 @@ declare -A HOOK_SOUND_CHOICES=(
     ["permission_prompt"]=""
     ["idle_prompt"]=""
     ["stop"]=""
+)
+
+# 钩子当前铃声索引（用于左右键切换）
+declare -A HOOK_SOUND_INDEX=(
+    ["task_done"]=0
+    ["user_prompt"]=0
+    ["ask_user"]=0
+    ["permission_prompt"]=0
+    ["idle_prompt"]=0
+    ["stop"]=0
 )
 
 # 可用铃声列表（用于交互式选择）
@@ -436,6 +446,94 @@ apply_sound_choice() {
     fi
 }
 
+# 切换到上一个铃声
+cycle_prev_sound() {
+    local hook_name="$1"
+    local sounds="${AVAILABLE_SOUNDS[$OS]}"
+    local sound_array=("${(@s/|/)sounds}")
+    local total_sounds=${#sound_array[@]}
+
+    local current_index="${HOOK_SOUND_INDEX[$hook_name]}"
+    local new_index=$((current_index - 1))
+
+    if [ $new_index -lt 0 ]; then
+        new_index=$((total_sounds - 1))  # 循环到最后一个
+    fi
+
+    HOOK_SOUND_INDEX[$hook_name]=$new_index
+
+    # 应用新的铃声选择
+    local selected_sound="${sound_array[$new_index + 1]}"
+    local sound_cmd=""
+
+    case "$OS" in
+        macos)
+            sound_cmd="afplay /System/Library/Sounds/${selected_sound}.aiff"
+            ;;
+        linux)
+            if [ "$selected_sound" = "System Bell" ]; then
+                sound_cmd="echo -e \"\\a\""
+            elif [ "$selected_sound" = "paplay" ]; then
+                sound_cmd="paplay /usr/share/sounds/freedesktop/stereo/complete.oga"
+            elif [ "$selected_sound" = "aplay" ]; then
+                sound_cmd="aplay /usr/share/sounds/alsa/Front_Center.wav"
+            fi
+            ;;
+        windows)
+            sound_cmd="powershell.exe -Command \"[console]::beep(${selected_sound})\""
+            ;;
+    esac
+
+    HOOK_SOUND_CHOICES[$hook_name]="$sound_cmd"
+
+    # 立即播放铃声试听
+    eval "$sound_cmd" 2>/dev/null &
+}
+
+# 切换到下一个铃声
+cycle_next_sound() {
+    local hook_name="$1"
+    local sounds="${AVAILABLE_SOUNDS[$OS]}"
+    local sound_array=("${(@s/|/)sounds}")
+    local total_sounds=${#sound_array[@]}
+
+    local current_index="${HOOK_SOUND_INDEX[$hook_name]}"
+    local new_index=$((current_index + 1))
+
+    if [ $new_index -ge $total_sounds ]; then
+        new_index=0  # 循环到第一个
+    fi
+
+    HOOK_SOUND_INDEX[$hook_name]=$new_index
+
+    # 应用新的铃声选择
+    local selected_sound="${sound_array[$new_index + 1]}"
+    local sound_cmd=""
+
+    case "$OS" in
+        macos)
+            sound_cmd="afplay /System/Library/Sounds/${selected_sound}.aiff"
+            ;;
+        linux)
+            if [ "$selected_sound" = "System Bell" ]; then
+                sound_cmd="echo -e \"\\a\""
+            elif [ "$selected_sound" = "paplay" ]; then
+                sound_cmd="paplay /usr/share/sounds/freedesktop/stereo/complete.oga"
+            elif [ "$selected_sound" = "aplay" ]; then
+                sound_cmd="aplay /usr/share/sounds/alsa/Front_Center.wav"
+            fi
+            ;;
+        windows)
+            sound_cmd="powershell.exe -Command \"[console]::beep(${selected_sound})\""
+            ;;
+    esac
+
+    HOOK_SOUND_CHOICES[$hook_name]="$sound_cmd"
+
+    # 立即播放铃声试听
+    eval "$sound_cmd" 2>/dev/null &
+}
+
 # 显示交互式配置菜单
 show_interactive_menu() {
     # 检查是否在交互式终端中
@@ -451,9 +549,15 @@ show_interactive_menu() {
     echo -e "${CYAN}当前操作系统: ${OS}${NC}"
     echo ""
 
-    # 步骤 1: 选择要启用的钩子
+    # 获取可用铃声列表
+    local sounds="${AVAILABLE_SOUNDS[$OS]}"
+    local sound_array=("${(@s/|/)sounds}")
+    local total_sounds=${#sound_array[@]}
+
+    # 钩子列表和当前选择
     local hook_names=(task_done user_prompt ask_user permission_prompt idle_prompt stop)
     local total_hooks=6
+    local current_selection=0  # 当前选中的钩子索引 (0-5)
 
     while true; do
         clear
@@ -461,87 +565,93 @@ show_interactive_menu() {
         echo -e "${CYAN}当前操作系统: ${OS}${NC}"
         echo ""
 
-        print_info "步骤 1/2: 选择要启用的声音通知"
+        print_info "步骤 1/1: 配置声音通知"
         echo ""
-        echo "输入数字切换启用/禁用状态，或按 Enter 完成并继续:"
+        echo "使用 ↑↓ 键移动，回车切换启用/禁用，左右键切换铃声，q 键退出完成"
         echo ""
 
-        local i=1
-        for hook_name in "${hook_names[@]}"; do
+        # 显示所有钩子
+        local i=0
+        while [ $i -lt $total_hooks ]; do
+            local hook_name="${hook_names[$i + 1]}"
+            local cursor="  "
+
+            # 显示当前选中项的箭头
+            if [ $i -eq $current_selection ]; then
+                cursor="→ "
+            fi
+
+            # 显示启用/禁用状态
             local hook_status="${GREEN}[✓ 启用]${NC}"
-
             if [ "${HOOK_ENABLED[$hook_name]}" -eq 0 ]; then
                 hook_status="${RED}[✗ 禁用]${NC}"
             fi
 
-            echo "  ${i}. ${hook_status} ${HOOK_DESCRIPTIONS[$hook_name]} (${HOOK_DETAIL_DESCRIPTIONS[$hook_name]})"
+            # 获取当前铃声名称和索引
+            local sound_index="${HOOK_SOUND_INDEX[$hook_name]}"
+            local current_sound="${sound_array[$sound_index + 1]}"
+            local display_index=$((sound_index + 1))
+
+            # 显示行
+            echo "${cursor}${hook_status} ${HOOK_DESCRIPTIONS[$hook_name]} - ${current_sound} (${display_index}/${total_sounds})"
+
             ((i++))
         done
 
         echo ""
-        echo -e "${CYAN}  0. [完成配置] - 继续到下一步${NC}"
+        echo -e "${CYAN}按 q 键完成配置并继续${NC}"
         echo ""
 
-        # 读取用户输入
-        echo -n "选择 (0-6, 或 Enter 继续): "
-        read -r choice
+        # 读取单字符输入（支持方向键）
+        local key=""
+        read -s -k 1 key 2>/dev/null || key=""
 
-        # 处理用户选择
-        case "$choice" in
-            '')
-                # 按 Enter，完成配置
-                break
+        case "$key" in
+            $'\e')  # 可能是方向键
+                # 读取第二个字符（带超时）
+                local key2=""
+                read -s -k 1 -t 0.1 key2 2>/dev/null || key2=""
+
+                if [ "$key2" = "[" ]; then
+                    # 读取第三个字符（带超时）
+                    local key3=""
+                    read -s -k 1 -t 0.1 key3 2>/dev/null || key3=""
+
+                    case "$key3" in
+                        A)  # 上键：移动光标到上一个钩子
+                            if [ $current_selection -gt 0 ]; then
+                                ((current_selection--))
+                            fi
+                            ;;
+                        B)  # 下键：移动光标到下一个钩子
+                            if [ $current_selection -lt $((total_hooks - 1)) ]; then
+                                ((current_selection++))
+                            fi
+                            ;;
+                        D)  # 左键：切换到上一个铃声
+                            local selected_hook="${hook_names[$current_selection + 1]}"
+                            cycle_prev_sound "$selected_hook"
+                            ;;
+                        C)  # 右键：切换到下一个铃声
+                            local selected_hook="${hook_names[$current_selection + 1]}"
+                            cycle_next_sound "$selected_hook"
+                            ;;
+                    esac
+                fi
                 ;;
-            0)
-                # 输入 0，完成配置
-                break
-                ;;
-            q|Q)
-                # 输入 q 退出
-                echo ""
-                print_info "取消配置，使用默认设置"
-                exit 0
-                ;;
-            [1-6])
-                # 输入 1-6，切换对应钩子的状态
-                local idx=$((choice - 1))
-                local selected_hook="${hook_names[$idx + 1]}"
+            '')  # 回车键：切换启用/禁用
+                local selected_hook="${hook_names[$current_selection + 1]}"
                 if [ "${HOOK_ENABLED[$selected_hook]}" -eq 1 ]; then
                     HOOK_ENABLED[$selected_hook]=0
-                    print_success "已禁用: ${HOOK_DESCRIPTIONS[$selected_hook]}"
                 else
                     HOOK_ENABLED[$selected_hook]=1
-                    print_success "已启用: ${HOOK_DESCRIPTIONS[$selected_hook]}"
                 fi
-                sleep 0.5
                 ;;
-            *)
-                print_warning "无效的选择，请输入 0-6"
-                sleep 0.5
+            q|Q)  # q 键完成配置
+                echo ""
+                break
                 ;;
         esac
-    done
-
-    # 步骤 2: 为每个启用的钩子选择声音
-    print_info "步骤 2/2: 为每个钩子选择声音"
-    echo ""
-
-    for hook_name in "${hook_names[@]}"; do
-        if [ "${HOOK_ENABLED[$hook_name]}" -eq 0 ]; then
-            continue
-        fi
-
-        echo ""
-        echo -e "${CYAN}${HOOK_DESCRIPTIONS[$hook_name]}${NC} - ${HOOK_DETAIL_DESCRIPTIONS[$hook_name]}"
-        echo ""
-        show_sound_options "$hook_name"
-        echo ""
-        echo -n "输入声音编号或按 Enter 使用默认: "
-        read -r sound_choice
-
-        if [ -n "$sound_choice" ]; then
-            apply_sound_choice "$hook_name" "$sound_choice"
-        fi
     done
 
     echo ""
