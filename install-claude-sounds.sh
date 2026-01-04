@@ -458,11 +458,11 @@ show_interactive_menu() {
         local i=1
 
         for hook_name in "${hook_names[@]}"; do
-            local status="${GREEN}[✓ 启用]${NC}"
+            local hook_status="${GREEN}[✓ 启用]${NC}"
             if [ "${HOOK_ENABLED[$hook_name]}" -eq 0 ]; then
-                status="${RED}[✗ 禁用]${NC}"
+                hook_status="${RED}[✗ 禁用]${NC}"
             fi
-            echo "  ${i}. ${status} ${HOOK_DESCRIPTIONS[$hook_name]} (${HOOK_DETAIL_DESCRIPTIONS[$hook_name]})"
+            echo "  ${i}. ${hook_status} ${HOOK_DESCRIPTIONS[$hook_name]} (${HOOK_DETAIL_DESCRIPTIONS[$hook_name]})"
             ((i++))
         done
 
