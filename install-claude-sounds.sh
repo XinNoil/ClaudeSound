@@ -451,9 +451,8 @@ show_interactive_menu() {
     echo -e "${CYAN}当前操作系统: ${OS}${NC}"
     echo ""
 
-    # 步骤 1: 选择要启用的钩子（上下键选择，回车切换）
+    # 步骤 1: 选择要启用的钩子
     local hook_names=(task_done user_prompt ask_user permission_prompt idle_prompt stop)
-    local current_selection=0
     local total_hooks=6
 
     while true; do
@@ -464,87 +463,61 @@ show_interactive_menu() {
 
         print_info "步骤 1/2: 选择要启用的声音通知"
         echo ""
-        echo "使用 ↑↓ 键移动，空格/回车切换启用/禁用，选择第 7 项完成并继续:"
+        echo "输入数字切换启用/禁用状态，或按 Enter 完成并继续:"
         echo ""
 
         local i=1
         for hook_name in "${hook_names[@]}"; do
-            local cursor="  "
             local hook_status="${GREEN}[✓ 启用]${NC}"
 
             if [ "${HOOK_ENABLED[$hook_name]}" -eq 0 ]; then
                 hook_status="${RED}[✗ 禁用]${NC}"
             fi
 
-            # 显示当前选中项的箭头
-            if [ $i -eq $((current_selection + 1)) ]; then
-                cursor="→ "
-            fi
-
-            echo "${cursor}${hook_status} ${HOOK_DESCRIPTIONS[$hook_name]} (${HOOK_DETAIL_DESCRIPTIONS[$hook_name]})"
+            echo "  ${i}. ${hook_status} ${HOOK_DESCRIPTIONS[$hook_name]} (${HOOK_DETAIL_DESCRIPTIONS[$hook_name]})"
             ((i++))
         done
 
-        # 添加"完成配置"选项
-        local cursor="  "
-        if [ $i -eq $((current_selection + 1)) ]; then
-            cursor="→ "
-        fi
-        echo "${cursor}${CYAN}[完成配置]${NC} - 继续到下一步"
+        echo ""
+        echo -e "${CYAN}  0. [完成配置] - 继续到下一步${NC}"
         echo ""
 
-        # 读取单字符输入（上下键或空格/回车）
-        local key=""
-        read -s -k 1 key 2>/dev/null || key=""
+        # 读取用户输入
+        echo -n "选择 (0-6, 或 Enter 继续): "
+        read -r choice
 
-        case "$key" in
-            $'\e')  # 可能是方向键
-                # 读取第二个字符
-                read -s -k 1 key2 2>/dev/null
-                if [ "$key2" = "[" ]; then
-                    read -s -k 1 key3 2>/dev/null
-                    case "$key3" in
-                        A)  # 上键
-                            if [ $current_selection -gt 0 ]; then
-                                ((current_selection--))
-                            fi
-                            ;;
-                        B)  # 下键
-                            if [ $current_selection -lt $total_hooks ]; then
-                                ((current_selection++))
-                            fi
-                            ;;
-                    esac
-                fi
+        # 处理用户选择
+        case "$choice" in
+            '')
+                # 按 Enter，完成配置
+                break
                 ;;
-            ' ')  # 空格键 - 切换状态
-                if [ $current_selection -lt $total_hooks ]; then
-                    local selected_hook="${hook_names[$current_selection]}"
-                    if [ "${HOOK_ENABLED[$selected_hook]}" -eq 1 ]; then
-                        HOOK_ENABLED[$selected_hook]=0
-                    else
-                        HOOK_ENABLED[$selected_hook]=1
-                    fi
-                fi
+            0)
+                # 输入 0，完成配置
+                break
                 ;;
-            '')  # 回车键 - 切换状态或继续
-                if [ $current_selection -eq $total_hooks ]; then
-                    # 选择了"完成配置"
-                    break
-                else
-                    # 切换当前选项的状态
-                    local selected_hook="${hook_names[$current_selection]}"
-                    if [ "${HOOK_ENABLED[$selected_hook]}" -eq 1 ]; then
-                        HOOK_ENABLED[$selected_hook]=0
-                    else
-                        HOOK_ENABLED[$selected_hook]=1
-                    fi
-                fi
-                ;;
-            q)  # q 键退出
+            q|Q)
+                # 输入 q 退出
                 echo ""
                 print_info "取消配置，使用默认设置"
                 exit 0
+                ;;
+            [1-6])
+                # 输入 1-6，切换对应钩子的状态
+                local idx=$((choice - 1))
+                local selected_hook="${hook_names[$idx + 1]}"
+                if [ "${HOOK_ENABLED[$selected_hook]}" -eq 1 ]; then
+                    HOOK_ENABLED[$selected_hook]=0
+                    print_success "已禁用: ${HOOK_DESCRIPTIONS[$selected_hook]}"
+                else
+                    HOOK_ENABLED[$selected_hook]=1
+                    print_success "已启用: ${HOOK_DESCRIPTIONS[$selected_hook]}"
+                fi
+                sleep 0.5
+                ;;
+            *)
+                print_warning "无效的选择，请输入 0-6"
+                sleep 0.5
                 ;;
         esac
     done
