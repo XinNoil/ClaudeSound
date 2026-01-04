@@ -162,68 +162,94 @@ Notification 事件包含多个子类型，本项目支持其中两个：
 
 ### 测试提示音
 
+安装脚本直接将声音命令配置到 Claude Code 的 settings.json 中。你可以手动执行以下命令来测试不同的提示音效果。
+
 #### macOS
+
 ```bash
-# 测试工具调用提示音
-~/.local/bin/claude-task-done.sh
+# 测试 Glass 音效（清脆的玻璃声）
+afplay /System/Library/Sounds/Glass.aiff
 
-# 测试用户提交提示音
-~/.local/bin/claude-user-prompt.sh
+# 测试 Hero 音效（英雄登场）
+afplay /System/Library/Sounds/Hero.aiff
 
-# 测试用户询问提示音
-~/.local/bin/claude-ask-user.sh
+# 测试 Ping 音效（清脆提示音）
+afplay /System/Library/Sounds/Ping.aiff
 
-# 测试权限请求提示音
-~/.local/bin/claude-permission-prompt.sh
+# 测试 Basso 音效（低沉提示音）
+afplay /System/Library/Sounds/Basso.aiff
 
-# 测试空闲等待提示音
-~/.local/bin/claude-idle-prompt.sh
-
-# 测试任务停止提示音
-~/.local/bin/claude-stop.sh
+# 测试 Funk 音效（时尚音效）
+afplay /System/Library/Sounds/Funk.aiff
 ```
 
 #### Linux
+
 ```bash
-# 测试提示音（所有脚本使用相同的声音）
-~/.local/bin/claude-task-done.sh
-~/.local/bin/claude-user-prompt.sh
-~/.local/bin/claude-ask-user.sh
-~/.local/bin/claude-permission-prompt.sh
-~/.local/bin/claude-idle-prompt.sh
-~/.local/bin/claude-stop.sh
+# 测试系统终端蜂鸣声
+echo -e "\a"
+
+# 测试 PulseAudio 音效（需要安装 paplay）
+paplay /usr/share/sounds/freedesktop/stereo/complete.oga
+
+# 测试 ALSA 音效（需要安装 aplay）
+aplay /usr/share/sounds/alsa/Front_Center.wav
 ```
 
 #### Windows (Git Bash/MSYS2/WSL)
+
 ```bash
-# 测试工具调用提示音
-~/.local/bin/claude-task-done.sh
+# 测试标准提示音 (800Hz, 200ms)
+powershell.exe -Command "[console]::beep(800,200)"
 
-# 测试用户提交提示音
-~/.local/bin/claude-user-prompt.sh
+# 测试高音提示音 (1000Hz, 150ms)
+powershell.exe -Command "[console]::beep(1000,150)"
 
-# 测试用户询问提示音
-~/.local/bin/claude-ask-user.sh
+# 测试高频提示音 (1200Hz, 100ms)
+powershell.exe -Command "[console]::beep(1200,100)"
 
-# 测试权限请求提示音
-~/.local/bin/claude-permission-prompt.sh
-
-# 测试空闲等待提示音
-~/.local/bin/claude-idle-prompt.sh
-
-# 测试任务停止提示音
-~/.local/bin/claude-stop.sh
+# 测试双音提示音
+powershell.exe -Command "[console]::beep(800,100); [console]::beep(1200,100)"
 ```
 
 ## ⚙️ 自定义配置
 
 ### 更换提示音
 
-#### macOS
-编辑脚本文件，将音频文件路径改为你自己的文件：
+有两种方式可以更换提示音：
+
+#### 方式 1：重新运行安装脚本（推荐）
 
 ```bash
-~/.local/bin/claude-task-done.sh
+# 重新下载或使用现有脚本
+./install-claude-sounds.sh
+
+# 选择交互式配置，然后选择新的提示音
+```
+
+这会自动更新你的 settings.json 配置。
+
+#### 方式 2：手动编辑 settings.json
+
+编辑 `~/.claude/settings.json`，修改对应 hook 的 `command` 字段。
+
+**macOS 示例**：
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Glass.aiff"
+          }
+        ]
+      }
+    ]
+  }
+}
 ```
 
 **macOS 系统音效位置：**
@@ -231,7 +257,7 @@ Notification 事件包含多个子类型，本项目支持其中两个：
 ls /System/Library/Sounds/*.aiff
 ```
 
-可选系统音效：
+**macOS 可选系统音效：**
 - `Glass.aiff` - 清脆的玻璃声（默认）
 - `Hero.aiff` - 英雄登场音效
 - `Ping.aiff` - 清脆的提示音
@@ -241,53 +267,63 @@ ls /System/Library/Sounds/*.aiff
 - `Sosumi.aiff` - 经典 Mac 音效
 
 **支持的音频格式：**
-- AIFF
-- MP3
-- WAV
-- M4A
+- AIFF、MP3、WAV、M4A
 - 其他 `afplay` 支持的格式
 
-#### Linux
-编辑脚本文件以使用不同的声音播放方式：
-
-```bash
-~/.local/bin/claude-task-done.sh
+**Linux 示例**：
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "paplay /usr/share/sounds/freedesktop/stereo/complete.oga"
+          }
+        ]
+      }
+    ]
+  }
+}
 ```
 
-**其他 Linux 声音播放方式：**
+**Linux 声音播放方式：**
+1. **系统终端蜂鸣声**：`echo -e "\a"`
+2. **PulseAudio**：`paplay /usr/share/sounds/freedesktop/stereo/complete.oga`
+3. **ALSA**：`aplay /usr/share/sounds/alsa/Front_Center.wav`
 
-1. **使用 paplay (PulseAudio)**：
+**查看可用的系统音效**：
 ```bash
-paplay /usr/share/sounds/freedesktop/stereo/complete.oga
-```
-
-2. **使用 aplay (ALSA)**：
-```bash
-aplay /usr/share/sounds/alsa/Front_Center.wav
-```
-
-3. **使用 paplay 系统音效**：
-```bash
-# 查看可用音效
 ls /usr/share/sounds/freedesktop/stereo/
 ```
 
-#### Windows (Git Bash/MSYS2/WSL)
-编辑脚本文件以调整提示音的频率和时长：
-
-```bash
-~/.local/bin/claude-task-done.sh
+**Windows 示例**：
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell.exe -Command \"[console]::beep(800,200)\""
+          }
+        ]
+      }
+    ]
+  }
+}
 ```
 
-**PowerShell Beep 参数：**
-```bash
-powershell.exe -Command "[console]::beep(频率, 时长)"
-```
-
+**Windows PowerShell Beep 参数：**
+- 命令格式：`powershell.exe -Command "[console]::beep(频率, 时长)"`
 - 频率范围：37 - 32767 Hz
 - 时长单位：毫秒
 
-**示例：**
+**Windows 示例音效：**
 ```bash
 # 低沉提示音
 powershell.exe -Command "[console]::beep(400, 300)"

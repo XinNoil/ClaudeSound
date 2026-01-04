@@ -162,76 +162,102 @@ According to the official documentation, Claude Code supports the following 10 h
 
 ### Test Notification Sounds
 
+The installation script directly configures sound commands in Claude Code's settings.json. You can manually execute the following commands to test different notification sound effects.
+
 #### macOS
+
 ```bash
-# Test tool call sound
-~/.local/bin/claude-task-done.sh
+# Test Glass sound (crisp glass sound)
+afplay /System/Library/Sounds/Glass.aiff
 
-# Test user submit sound
-~/.local/bin/claude-user-prompt.sh
+# Test Hero sound (hero entrance)
+afplay /System/Library/Sounds/Hero.aiff
 
-# Test user prompt sound
-~/.local/bin/claude-ask-user.sh
+# Test Ping sound (clear notification ping)
+afplay /System/Library/Sounds/Ping.aiff
 
-# Test permission prompt sound
-~/.local/bin/claude-permission-prompt.sh
+# Test Basso sound (low notification sound)
+afplay /System/Library/Sounds/Basso.aiff
 
-# Test idle prompt sound
-~/.local/bin/claude-idle-prompt.sh
-
-# Test stop sound
-~/.local/bin/claude-stop.sh
+# Test Funk sound (funky sound effect)
+afplay /System/Library/Sounds/Funk.aiff
 ```
 
 #### Linux
+
 ```bash
-# Test notification sounds (all scripts use the same sound)
-~/.local/bin/claude-task-done.sh
-~/.local/bin/claude-user-prompt.sh
-~/.local/bin/claude-ask-user.sh
-~/.local/bin/claude-permission-prompt.sh
-~/.local/bin/claude-idle-prompt.sh
-~/.local/bin/claude-stop.sh
+# Test system terminal bell
+echo -e "\a"
+
+# Test PulseAudio sound (requires paplay)
+paplay /usr/share/sounds/freedesktop/stereo/complete.oga
+
+# Test ALSA sound (requires aplay)
+aplay /usr/share/sounds/alsa/Front_Center.wav
 ```
 
 #### Windows (Git Bash/MSYS2/WSL)
+
 ```bash
-# Test tool call sound
-~/.local/bin/claude-task-done.sh
+# Test standard beep (800Hz, 200ms)
+powershell.exe -Command "[console]::beep(800,200)"
 
-# Test user submit sound
-~/.local/bin/claude-user-prompt.sh
+# Test high pitch beep (1000Hz, 150ms)
+powershell.exe -Command "[console]::beep(1000,150)"
 
-# Test user prompt sound
-~/.local/bin/claude-ask-user.sh
+# Test high frequency beep (1200Hz, 100ms)
+powershell.exe -Command "[console]::beep(1200,100)"
 
-# Test permission prompt sound
-~/.local/bin/claude-permission-prompt.sh
-
-# Test idle prompt sound
-~/.local/bin/claude-idle-prompt.sh
-
-# Test stop sound
-~/.local/bin/claude-stop.sh
+# Test double beep
+powershell.exe -Command "[console]::beep(800,100); [console]::beep(1200,100)"
 ```
 
 ## ⚙️ Custom Configuration
 
 ### Changing Notification Sounds
 
-#### macOS
-Edit the script file and replace the audio file path with your own:
+There are two ways to change notification sounds:
+
+#### Method 1: Re-run the Installation Script (Recommended)
 
 ```bash
-~/.local/bin/claude-task-done.sh
+# Re-download or use existing script
+./install-claude-sounds.sh
+
+# Choose interactive configuration, then select new notification sounds
 ```
 
-**macOS System Sounds Location:**
+This will automatically update your settings.json configuration.
+
+#### Method 2: Manually Edit settings.json
+
+Edit `~/.claude/settings.json` and modify the `command` field for the corresponding hook.
+
+**macOS Example**:
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Glass.aiff"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**macOS System Sounds Location**:
 ```bash
 ls /System/Library/Sounds/*.aiff
 ```
 
-Available system sounds:
+**Available macOS System Sounds**:
 - `Glass.aiff` - Crisp glass sound (default)
 - `Hero.aiff` - Hero entrance effect
 - `Ping.aiff` - Clear notification ping
@@ -240,54 +266,64 @@ Available system sounds:
 - `Purr.aiff` - Purring sound
 - `Sosumi.aiff` - Classic Mac sound
 
-**Supported Audio Formats:**
-- AIFF
-- MP3
-- WAV
-- M4A
+**Supported Audio Formats**:
+- AIFF, MP3, WAV, M4A
 - Other formats supported by `afplay`
 
-#### Linux
-Edit the script file to use different sound playback methods:
-
-```bash
-~/.local/bin/claude-task-done.sh
+**Linux Example**:
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "paplay /usr/share/sounds/freedesktop/stereo/complete.oga"
+          }
+        ]
+      }
+    ]
+  }
+}
 ```
 
-**Other Linux Sound Playback Methods:**
+**Linux Sound Playback Methods**:
+1. **System terminal bell**: `echo -e "\a"`
+2. **PulseAudio**: `paplay /usr/share/sounds/freedesktop/stereo/complete.oga`
+3. **ALSA**: `aplay /usr/share/sounds/alsa/Front_Center.wav`
 
-1. **Using paplay (PulseAudio)**:
+**List Available System Sounds**:
 ```bash
-paplay /usr/share/sounds/freedesktop/stereo/complete.oga
-```
-
-2. **Using aplay (ALSA)**:
-```bash
-aplay /usr/share/sounds/alsa/Front_Center.wav
-```
-
-3. **Using paplay system sounds**:
-```bash
-# List available sounds
 ls /usr/share/sounds/freedesktop/stereo/
 ```
 
-#### Windows (Git Bash/MSYS2/WSL)
-Edit the script file to adjust beep frequency and duration:
-
-```bash
-~/.local/bin/claude-task-done.sh
+**Windows Example**:
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell.exe -Command \"[console]::beep(800,200)\""
+          }
+        ]
+      }
+    ]
+  }
+}
 ```
 
-**PowerShell Beep Parameters:**
-```bash
-powershell.exe -Command "[console]::beep(frequency, duration)"
-```
-
+**Windows PowerShell Beep Parameters**:
+- Command format: `powershell.exe -Command "[console]::beep(frequency, duration)"`
 - Frequency range: 37 - 32767 Hz
 - Duration unit: milliseconds
 
-**Examples:**
+**Windows Sound Examples**:
 ```bash
 # Low pitch notification
 powershell.exe -Command "[console]::beep(400, 300)"
