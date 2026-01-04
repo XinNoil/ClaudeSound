@@ -164,7 +164,7 @@ According to the official documentation, Claude Code supports the following 10 h
 
 #### macOS
 ```bash
-# Test task complete sound
+# Test tool call sound
 ~/.local/bin/claude-task-done.sh
 
 # Test user submit sound
@@ -196,7 +196,7 @@ According to the official documentation, Claude Code supports the following 10 h
 
 #### Windows (Git Bash/MSYS2/WSL)
 ```bash
-# Test task complete sound
+# Test tool call sound
 ~/.local/bin/claude-task-done.sh
 
 # Test user submit sound

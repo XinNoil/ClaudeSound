@@ -164,7 +164,7 @@ Notification 事件包含多个子类型，本项目支持其中两个：
 
 #### macOS
 ```bash
-# 测试任务完成提示音
+# 测试工具调用提示音
 ~/.local/bin/claude-task-done.sh
 
 # 测试用户提交提示音
@@ -196,7 +196,7 @@ Notification 事件包含多个子类型，本项目支持其中两个：
 
 #### Windows (Git Bash/MSYS2/WSL)
 ```bash
-# 测试任务完成提示音
+# 测试工具调用提示音
 ~/.local/bin/claude-task-done.sh
 
 # 测试用户提交提示音
