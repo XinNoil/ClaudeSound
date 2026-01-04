@@ -536,13 +536,6 @@ cycle_next_sound() {
 
 # 显示交互式配置菜单
 show_interactive_menu() {
-    # 检查是否在交互式终端中
-    if [ ! -t 0 ]; then
-        print_warning "检测到非交互式环境，跳过交互式配置"
-        print_info "使用默认配置（所有通知启用，默认声音）"
-        return 0
-    fi
-
     clear
     print_header "Claude Code 声音提示配置 v${VERSION} - 交互式配置"
 
