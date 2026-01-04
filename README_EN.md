@@ -72,11 +72,10 @@ Default configuration enables all notifications with system default ringtones.
 ```
 
 Interactive configuration provides a simple keyboard operation interface:
-- ✅ **Number Keys 1-6**: Toggle enable/disable for corresponding notification
-- ✅ **l Key**: Switch all ringtones to previous one
-- ✅ **r Key**: Switch all ringtones to next one
-- ✅ **0 or Enter Key**: Complete configuration and continue
-- ✅ **q Key**: Cancel configuration and exit
+- ✅ **↑↓ Arrow Keys**: Move cursor between different notifications (→ arrow indicates current selection)
+- ✅ **Enter Key**: Toggle enable/disable for currently selected notification
+- ✅ **←→ Arrow Keys**: Switch ringtone type for currently selected notification (individual setting, not batch)
+- ✅ **q Key**: Complete configuration and continue installation
 
 **Supported Platform Ringtone Options**:
 
@@ -309,8 +308,14 @@ ClaudeSound/
 ├── LICENSE                  # MIT License
 ├── .gitignore              # Git ignore file
 ├── install-claude-sounds.sh # One-click installation script
-└── docs/
-    └── 配置指南.md          # Detailed configuration document (Chinese)
+├── docs/                    # Documentation directory
+│   ├── 配置指南.md          # Detailed configuration document (Chinese)
+│   ├── BUGFIX_NOTES.md      # Bug fix records
+│   └── ...                  # Other documentation
+└── test/                    # Test and development files
+    ├── install-claude-sounds-v2.sh  # v2 version script
+    ├── install-claude-sounds-v4.sh  # v4 version script
+    └── ...                  # Other test files
 ```
 
 ## 🔧 Advanced Configuration
