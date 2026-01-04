@@ -71,11 +71,12 @@ Default configuration enables all notifications with system default ringtones.
 # When prompted "Use interactive configuration?", enter y
 ```
 
-Interactive configuration provides a unified keyboard navigation interface:
-- ✅ **↑↓ Arrow Keys**: Move cursor between notifications
-- ✅ **Enter Key**: Toggle enable/disable for current notification
-- ✅ **←→ Arrow Keys**: Switch ringtone type for current notification (plays preview)
-- ✅ **q Key**: Complete configuration and continue
+Interactive configuration provides a simple keyboard operation interface:
+- ✅ **Number Keys 1-6**: Toggle enable/disable for corresponding notification
+- ✅ **l Key**: Switch all ringtones to previous one
+- ✅ **r Key**: Switch all ringtones to next one
+- ✅ **0 or Enter Key**: Complete configuration and continue
+- ✅ **q Key**: Cancel configuration and exit
 
 **Supported Platform Ringtone Options**:
 
